@@ -7,11 +7,15 @@ beforeEach(() => {
 });
 
 describe('Central de Atendimento ao Cliente TAT', () => {
-    it('verifica o título da aplicação', () => {
-        cy.title().should('include', 'Central de Atendimento ao Cliente TAT');
+    Cypress._.times(5, () => {
+        it('verifica o título da aplicação', () => {
+            cy.title().should('include', 'Central de Atendimento ao Cliente TAT');
+        })
     })
 
     it('preenche os campos obrigatórios e envia o formulário', () => {
+        cy.clock()
+
         cy.get('#firstName').should('be.visible').type('Guilherme').should('have.value', 'Guilherme')
         cy.get('#lastName').should('be.visible').type('Freire').should('have.value', 'Freire')
         cy.get('#email').should('be.visible').type('guifreire@gmail.com').should('have.value', 'guifreire@gmail.com')
@@ -20,6 +24,10 @@ describe('Central de Atendimento ao Cliente TAT', () => {
         cy.contains('button', 'Enviar').should('be.visible').click()
 
         cy.get('.success').should('be.visible');
+
+        cy.tick(3000)
+
+        cy.get('.success').should('not.be.visible');
     });
 
     it('exibe mensagem de erro ao submeter o formulário com um email com formatação inválida', () => {
@@ -136,5 +144,37 @@ describe('Central de Atendimento ao Cliente TAT', () => {
         
         cy.title()
           .should('include','Central de Atendimento ao Cliente TAT - Política de privacidade');
+    });
+
+    it('exibe e esconde as mensagens de sucesso e erro usando o .invoke', () => {
+        cy.fillMandatoryFieldsAndSubmit();
+
+        cy.get('.success')
+          .invoke('hide')
+          .should('not.be.visible');
+    });
+
+    it('preenche a area de texto usando o invoke', () => {
+        const name = 'guilherme pereira freire'
+
+        cy.get('#firstName')
+          .invoke('val', name)
+          .should('have.value', name);
+    });
+
+    it('faz requisição HTTP', () => {
+        cy.request('https://cac-tat.s3.eu-central-1.amazonaws.com/index.html')
+          .should((response) => {
+            const {status, statusText, body} = response
+            expect(status).to.equal(200)
+            expect(statusText).to.equal('OK')
+            expect(body).to.include('CAC TAT')
+          });
+    });
+
+    it('ache o gato', () => {
+        cy.get('#cat')
+          .invoke('show')
+          .should('be.visible');
     });
 })
